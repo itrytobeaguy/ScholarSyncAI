@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScholarSync AI - High School Productivity Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dynamic Theme Variables Mapping */
+        :root, body[data-theme="light"] {
+            --bg-app: #f8fafc;
+            --bg-partitions: #ffffff;
+            --bg-sidebar: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #cbd5e1;
+            --accent-primary: #7c3aed;
+            --accent-hover: #6d28d9;
+            --bg-input: #f1f5f9;
+            --header-bg: #ffffff;
+            --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        body[data-theme="dark"] {
+            --bg-app: #0f172a;
+            --bg-partitions: #1e293b;
+            --bg-sidebar: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --accent-primary: #a78bfa;
+            --accent-hover: #c084fc;
+            --bg-input: #0f172a;
+            --header-bg: #1e293b;
+            --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        body[data-theme="cosmic"] {
+            --bg-app: #0b061f;
+            --bg-partitions: #160d38;
+            --bg-sidebar: #0b061f;
+            --text-main: #f1f5f9;
+            --text-muted: #c084fc;
+            --border-color: #4c1d95;
+            --accent-primary: #f472b6; 
+            --accent-hover: #f43f5e;
+            --bg-input: #241457;
+            --header-bg: #160d38;
+            --card-shadow: 0 4px 20px 0 rgba(147, 51, 234, 0.25);
+        }
+
+        /* Dynamic Landing Background Gradients */
+        body[data-theme="light"] #auth-view { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
+        body[data-theme="dark"] #auth-view { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        body[data-theme="cosmic"] #auth-view { background: linear-gradient(135deg, #0b061f 0%, #1e1145 100%); }
+
+        body {
+            background-color: var(--bg-app);
+            color: var(--text-main);
+        }
+
+        .partition-card {
+            background-color: var(--bg-partitions);
+            border-color: var(--border-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        .markdown-content h3 { 
+            font-size: 1.15rem; 
+            font-weight: 700; 
+            color: var(--accent-primary); 
+            margin-top: 1rem; 
+            margin-bottom: 0.5rem; 
+        }
+        .markdown-content ul { 
+            list-style-type: disc; 
+            margin-left: 1.25rem; 
+            margin-bottom: 0.75rem; 
+        }
+        .markdown-content li { 
+            margin-bottom: 0.25rem; 
+            color: var(--text-main);
+        }
+        .markdown-content p { 
+            margin-bottom: 0.5rem; 
+            color: var(--text-main);
+        }
+
+        body[data-theme="dark"] #calendar-icon,
+        body[data-theme="dark"] #calendar-icon path,
+        body[data-theme="cosmic"] #calendar-icon,
+        body[data-theme="cosmic"] #calendar-icon path {
+            stroke: #ffffff !important;
+        }
+
+        .google-btn-container iframe {
+            margin: 0 auto !important;
+            border-radius: 12px !important;
+        }
+    </style>
+</head>
+<body data-theme="dark" class="h-screen flex flex-col overflow-hidden">
+
+    <header class="h-16 border-b flex items-center justify-between px-6 partition-card transition-colors duration-300 z-10" style="background-color: var(--header-bg);">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateToView('auth')" title="Return to Landing Page">
+            <div class="h-9 w-9 bg-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-purple-500/20">S</div>
+            <span class="font-bold text-xl tracking-tight">ScholarSync <span class="text-purple-400 font-medium text-sm">AI</span></span>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+            <button id="nav-signout-btn" onclick="signOutUser()" class="hidden text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] hover:text-rose-400 transition-colors mr-2">Sign Out</button>
+            
+            <div id="header-stats-display" class="hidden items-center space-x-4 text-sm font-semibold">
+                <div id="calendar-status-badge" class="hidden px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold">📅 Calendar Linked</div>
+                <div id="stat-streak" class="px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20">🔥 3 Days</div>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-[var(--bg-input)] px-3 py-1.5 rounded-xl border border-[var(--border-color)]">
+                <svg class="h-4 w-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span id="account-profile-label" class="text-xs font-semibold text-[var(--text-main)]">Student Profile</span>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-[var(--bg-input)] px-3 py-1.5 rounded-xl border border-[var(--border-color)]">
+                <label for="theme-select" class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Theme:</label>
+                <select id="theme-select" onchange="toggleTheme(this.value)" class="bg-transparent text-xs font-semibold text-[var(--text-main)] outline-none cursor-pointer pr-1">
+                    <option value="light" class="text-slate-900 bg-white">Light Mode</option>
+                    <option value="dark" class="text-white bg-slate-900">Dark Mode</option>
+                    <option value="cosmic" class="text-purple-300 bg-slate-950">Cosmic Mode</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <div id="auth-view" class="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-start space-y-8">
+        
+        <div class="text-center max-w-2xl mt-8 space-y-4">
+            <span class="px-4 py-1.5 rounded-full bg-purple-600/10 text-purple-400 text-xs font-bold tracking-wider uppercase border border-purple-500/20">
+                The Ultimate High School Productivity Stack
+            </span>
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-[var(--text-main)]">
+                Optimize Your Academic Journey with <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-pink-400">ScholarSync AI</span>
+            </h1>
+            <p class="text-base text-[var(--text-muted)] leading-relaxed">
+                Stop drowning in study stress: Seamlessly track exams, divide complex projects into actionable milestones, and generate custom study roadmaps calibrated to your current confidence levels.
+            </p>
+            <div class="pt-2">
+                <button onclick="loginWithGoogle()" class="text-white font-bold text-sm px-6 py-3 rounded-xl shadow-lg transition-all inline-block hover:opacity-95" style="background-color: var(--accent-primary);">
+                    Get Started Instantly 
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl w-full">
+            <div class="partition-card border rounded-2xl p-6 transition-all hover:scale-[1.02] duration-300">
+                <div class="h-10 w-10 rounded-xl bg-purple-600/10 text-purple-400 border border-purple-500/20 flex items-center justify-center font-bold mb-4">📅</div>
+                <h3 class="text-base font-bold mb-2">Intelligent Exam Planner:</h3>
+                <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+                    Input your exam date alongside self-assessed subject confidence levels to receive personalized priority breakdowns and study plans built to attack your academic weaknesses.
+                </p>
+            </div>
+            <div class="partition-card border rounded-2xl p-6 transition-all hover:scale-[1.02] duration-300">
+                <div class="h-10 w-10 rounded-xl bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center font-bold mb-4">🎯</div>
+                <h3 class="text-base font-bold mb-2">Intelligent Project Breakdown:</h3>
+                <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+                    Break down any work, from complex term papers to large lab reports into structured and sequential mini-objectives complete with deadline triggers and citation structures.
+                </p>
+            </div>
+            <div class="partition-card border rounded-2xl p-6 transition-all hover:scale-[1.02] duration-300">
+                <div class="h-10 w-10 rounded-xl bg-pink-600/10 text-pink-400 border border-pink-500/20 flex items-center justify-center font-bold mb-4">⚡</div>
+                <h3 class="text-base font-bold mb-2">Daily Study Booster</h3>
+                <p class="text-xs text-[var(--text-muted)] leading-relaxed">
+                    Short on time? Provide your available focus window hours and immediate checklist requirements to generate an accelerated, step-by-step study schedule.
+                </p>
+            </div>
+        </div>
+
+        <div id="auth-card-anchor" onclick="loginWithGoogle()" class="partition-card border rounded-3xl py-16 px-12 w-full max-w-xl min-h-[520px] flex flex-col justify-between shadow-2xl relative overflow-hidden text-center transition-all duration-300 mb-6 cursor-pointer hover:border-purple-500 group" title="Click anywhere on this card to access the workspace via Google Login">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-purple-500 via-indigo-500 to-pink-500"></div>
+            
+            <div class="space-y-4">
+                <h2 class="text-3xl font-extrabold tracking-tight text-[var(--text-main)] group-hover:text-purple-400 transition-colors">Access Your Workspace</h2>
+                <p class="text-sm text-[var(--text-muted)] max-w-md mx-auto leading-relaxed">Authenticate securely below using your student credentials or utilize the fast offline developer bypass token to access tools instantly.</p>
+            </div>
+
+            <div class="py-10 flex flex-col items-center justify-center w-full border-y border-[var(--border-color)] my-4">
+                <button onclick="event.stopPropagation(); loginWithGoogle()" class="w-full max-w-md py-4 px-6 rounded-xl text-white font-bold text-sm shadow-md transition-all flex items-center justify-center space-x-3 hover:opacity-95" style="background-color: var(--accent-primary);">
+                    <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.65-5.17 3.65-8.58z" fill="#4285F4"/>
+                        <path d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z" fill="#34A853"/>
+                        <path d="M5.32 14.24A7.16 7.16 0 0 1 5 12c0-.79.13-1.57.32-2.34V6.51H1.21A11.94 11.94 0 0 0 0 12c0 1.92.45 3.79 1.21 5.49l4.11-3.25z" fill="#FBBC05"/>
+                        <path d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 5.51l4.11 3.25c.94-2.85 3.57-4.96 6.68-4.96z" fill="#EA4335"/>
+                    </svg>
+                    <span>Sign In with Google Account</span>
+                </button>
+            </div>
+
+            <div class="pt-4">
+                <button onclick="event.stopPropagation(); bypassForTesting()" class="w-full max-w-md mx-auto py-3.5 rounded-xl bg-purple-600/10 border border-purple-500/20 text-xs font-bold tracking-wide text-purple-400 hover:bg-purple-600 hover:text-white transition-all shadow-sm">
+                    ⚡ Offline Developer Bypass Token
+                </button>
+            </div>
+        </div>
+
+        <footer class="w-full text-center py-6 mt-12 border-t border-[var(--border-color)] text-[var(--text-muted)] text-xs flex items-center justify-center space-x-2">
+            <div class="h-5 w-5 bg-purple-600 rounded-md flex items-center justify-center text-white font-bold text-xs">S</div>
+            <span class="font-bold tracking-wide">ScholarSync AI</span>
+            <span>•</span>
+            <span class="opacity-75 font-medium">v2.4.0 Production Build</span>
+        </footer>
+    </div>
+
+    <main id="app-view" class="flex-1 flex overflow-hidden p-4 gap-4 hidden">
+        
+        <section class="w-5/12 flex flex-col gap-4 overflow-y-auto pr-1">
+            
+            <div class="partition-card border rounded-2xl p-4 transition-colors duration-300">
+                <h2 class="text-xs font-bold uppercase tracking-wider mb-3 text-[var(--text-muted)]">Target Operational Focus</h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="switchPhase('planner')" id="tab-planner" class="py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all bg-purple-600 border-purple-500 text-white shadow-sm flex items-center justify-center gap-1.5">
+                        <svg id="calendar-icon" class="h-4 w-4 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Planner</span>
+                    </button>
+                    <button onclick="switchPhase('milestone')" id="tab-milestone" class="py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-input)] flex items-center justify-center gap-1.5">
+                        <svg class="h-4 w-4 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14a2 2 0 100-4 2 2 0 000 4z" />
+                        </svg>
+                        <span>Milestones</span>
+                    </button>
+                    <button onclick="switchPhase('booster')" id="tab-booster" class="py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-input)] flex items-center justify-center gap-1.5">
+                        <svg class="h-4 w-4 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span>Booster</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="partition-card border rounded-2xl p-5 flex-1 flex flex-col justify-between transition-colors duration-300">
+                <div id="dynamic-input-fields" class="space-y-4">
+                    <div id="group-planner" class="phase-group space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--text-muted)]">Target Exam Date</label>
+                            <input type="date" id="input-exam-date" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--text-muted)]">Subject Metrics & Confidence Parameters</label>
+                            <textarea id="input-subjects" placeholder="e.g., AP Calculus (Weak - struggling with integration), Chemistry (Medium), US History (High)" rows="5" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div id="group-milestone" class="phase-group space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--text-muted)]">Project Title</label>
+                            <input type="text" id="input-project-title" placeholder="e.g., Biology Term Paper on Cell Mutation" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--text-muted)]">Assignment Specific Criteria / Instructions</label>
+                            <textarea id="input-project-reqs" placeholder="Requires minimum 5 citations, standard APA structure format, and a diagram visualization sequence." rows="4" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm resize-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--text-muted)]">Final Deadline Date</label>
+                            <input type="date" id="input-project-deadline" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm">
+                        </div>
+                    </div>
+
+                    <div id="group-booster" class="phase-group space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--text-muted)]">Tasks To Accomplish Today</label>
+                            <textarea id="input-booster-tasks" placeholder="e.g., Read history chapter 4, finish geometry worksheet equations 1-10" rows="4" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm resize-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider mb-2 text-[var(--text-muted)]">Available Focus Time Window (Hours)</label>
+                            <input type="number" id="input-booster-hours" placeholder="e.g., 3" min="1" max="12" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="triggerSynchronizedPipeline()" class="w-full mt-6 text-white font-bold text-sm py-4 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 hover:opacity-95" style="background-color: var(--accent-primary);">
+                    <span>🚀 Optimize Strategy Roadmap</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="w-7/12 partition-card border rounded-2xl flex flex-col overflow-hidden transition-colors duration-300 relative">
+            
+            <div id="chat-history-container" class="flex-1 overflow-y-auto p-5 space-y-4">
+                <div id="initial-welcome-message" class="p-4 rounded-xl border border-dashed border-[var(--border-color)] bg-[var(--bg-input)] text-center">
+                    <p class="text-sm text-[var(--text-muted)] font-medium">Select a phase template on the left and click optimize to map a strategic roadmap template or ask the chat assistant any school questions directly.</p>
+                </div>
+            </div>
+
+            <div id="chat-file-preview-bar" class="hidden px-5 py-2 border-t border-[var(--border-color)] bg-[var(--bg-input)] flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-2 text-purple-400 font-medium truncate">
+                    <span>📎 Attached Material Document:</span>
+                    <span id="chat-file-name-label" class="text-[var(--text-main)] font-semibold truncate max-w-xs">image.png</span>
+                </div>
+                <button onclick="clearChatFileAttachment()" class="text-rose-500 hover:text-rose-400 font-bold ml-2">Remove</button>
+            </div>
+
+            <div class="p-4 border-t border-[var(--border-color)] bg-[var(--bg-partitions)] flex items-center space-x-2">
+                <input type="file" id="chat-file-input" accept="image/*" class="hidden" onchange="processSelectedChatFile(this)">
+                
+                <button onclick="document.getElementById('chat-file-input').click()" class="p-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-input)] hover:bg-purple-600/10 hover:border-purple-500 text-[var(--text-muted)] hover:text-purple-400 transition-all flex items-center justify-center" title="Upload School Work Photo">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812-1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+
+                <div class="flex-1 relative flex items-center">
+                    <input type="text" id="chat-text-input" placeholder="Ask questions about your homework or current study setup..." onkeydown="if(event.key === 'Enter') dispatchChatQueryMessage(false)" class="w-full pl-4 pr-12 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm transition-all">
+                    
+                    <button onclick="dispatchChatQueryMessage(false)" id="chat-submit-btn" class="absolute right-2 p-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-all flex items-center justify-center shadow-md">
+                        <svg class="h-4 w-4 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9-7-9-7v14z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <div id="toast-notification-system" class="fixed bottom-6 left-6 space-y-2 z-50"></div>
+
+    <script>
+        let currentActivePhase = 'planner';
+        let attachedFileBase64 = null;
+        let attachedFileMime = null;
+        let streak = parseInt(localStorage.getItem('ss_streak')) || 3;
+        
+        let tokenClient;
+        let googleAccessToken = null;
+
+        function initGoogleAuthClient() {
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: '{{ google_client_id }}',
+                    scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.profile openid',
+                    callback: (tokenResponse) => {
+                        if (tokenResponse && tokenResponse.access_token) {
+                            googleAccessToken = tokenResponse.access_token;
+                            triggerAlertNotice("Google Identity Synced", "Successfully linked Google Account and Calendar profiles!", "emerald");
+                            
+                            document.getElementById('calendar-status-badge').classList.remove('hidden');
+                            navigateToView('app');
+                        }
+                    },
+                });
+            }
+        }
+
+        function loginWithGoogle() {
+            if (tokenClient && '{{ google_client_id }}' !== '') {
+                tokenClient.requestAccessToken();
+            } else {
+                triggerAlertNotice("Initialization Wait", "Google verification processes are initializing. Running offline bypass token fallback...", "purple");
+                bypassForTesting();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(initGoogleAuthClient, 600);
+        });
+
+        function navigateToView(targetView) {
+            const authView = document.getElementById('auth-view');
+            const appView = document.getElementById('app-view');
+            const statsDisplay = document.getElementById('header-stats-display');
+            const signoutBtn = document.getElementById('nav-signout-btn');
+
+            if (targetView === 'auth') {
+                authView.classList.remove('hidden');
+                authView.classList.add('flex');
+                appView.classList.add('hidden');
+                statsDisplay.classList.remove('flex');
+                statsDisplay.classList.add('hidden');
+                signoutBtn.classList.add('hidden');
+            } else if (targetView === 'app') {
+                authView.classList.add('hidden');
+                authView.classList.remove('flex');
+                appView.classList.remove('hidden');
+                statsDisplay.classList.remove('hidden');
+                statsDisplay.classList.add('flex');
+                signoutBtn.classList.remove('hidden');
+            }
+        }
+
+        function bypassForTesting() {
+            triggerAlertNotice("Bypass Token Accepted", "Welcome back, Developer Scholar!", "purple");
+            googleAccessToken = "mock_developer_access_token";
+            document.getElementById('calendar-status-badge').classList.remove('hidden');
+            navigateToView('app');
+        }
+
+        function signOutUser() {
+            googleAccessToken = null;
+            document.getElementById('calendar-status-badge').classList.add('hidden');
+            triggerAlertNotice("Session Terminated", "Successfully logged out.", "purple");
+            navigateToView('auth');
+        }
+
+        function toggleTheme(themeSelection) {
+            document.body.setAttribute('data-theme', themeSelection);
+            localStorage.setItem('ss_theme', themeSelection);
+            
+            const themeSelect = document.getElementById('theme-select');
+            if (themeSelect) {
+                themeSelect.value = themeSelection;
+            }
+        }
+        toggleTheme(localStorage.getItem('ss_theme') || 'dark');
+
+        function switchPhase(selectedPhase) {
+            currentActivePhase = selectedPhase;
+            document.querySelectorAll('.phase-group').forEach(element => element.classList.add('hidden'));
+            document.getElementById(`group-${selectedPhase}`).classList.remove('hidden');
+            
+            ['planner', 'milestone', 'booster'].forEach(p => {
+                const button = document.getElementById(`tab-${p}`);
+                if (p === selectedPhase) {
+                    button.className = "py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all bg-purple-600 border-purple-500 text-white shadow-sm flex items-center justify-center gap-1.5";
+                } else {
+                    button.className = "py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all border-[var(--border-color)] text-[var(--text-muted)] hover:bg-[var(--bg-input)] flex items-center justify-center gap-1.5";
+                }
+            });
+        }
+
+        function triggerAlertNotice(headline, body, styleColor) {
+            const container = document.getElementById('toast-notification-system');
+            const noticeCard = document.createElement('div');
+            const borderColors = { red: 'border-red-500/30', emerald: 'border-emerald-500/30', purple: 'border-purple-500/30' };
+            const textColors = { red: 'text-red-400', emerald: 'text-emerald-400', purple: 'text-purple-400' };
+            
+            noticeCard.className = `p-4 rounded-xl border partition-card flex flex-col max-w-sm shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 border-l-4 ${borderColors[styleColor] || 'border-purple-500'}`;
+            noticeCard.innerHTML = `<span class="font-bold text-xs tracking-wide uppercase ${textColors[styleColor] || 'text-purple-400'}">${headline}</span><span class="text-xs mt-1 font-medium">${body}</span>`;
+            
+            container.appendChild(noticeCard);
+            setTimeout(() => { noticeCard.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                noticeCard.classList.add('opacity-0', 'translate-x-4');
+                setTimeout(() => { noticeCard.remove(); }, 300);
+            }, 4000);
+        }
+
+        function processSelectedChatFile(inputElement) {
+            const attachedFile = inputElement.files[0];
+            if (!attachedFile) return;
+            
+            if (!attachedFile.type.startsWith('image/')) {
+                triggerAlertNotice("Format Rejection", "Only homework photos and image files are supported.", "red");
+                inputElement.value = '';
+                return;
+            }
+
+            const clientReader = new FileReader();
+            clientReader.onload = function(event) {
+                const rawDataResult = event.target.result;
+                attachedFileBase64 = rawDataResult.split(',')[1];
+                attachedFileMime = attachedFile.type;
+                
+                document.getElementById('chat-file-name-label').innerText = attachedFile.name;
+                document.getElementById('chat-file-preview-bar').classList.remove('hidden');
+                triggerAlertNotice("Material Attached", "Your document image is queued for the chatbot.", "purple");
+            };
+            clientReader.readAsDataURL(attachedFile);
+        }
+
+        function clearChatFileAttachment() {
+            attachedFileBase64 = null;
+            attachedFileMime = null;
+            document.getElementById('chat-file-input').value = '';
+            document.getElementById('chat-file-preview-bar').classList.add('hidden');
+        }
+
+        async function triggerSynchronizedPipeline(forceExecution=false) {
+            let inputPacket = {};
+            let summaryTitle = "";
+            let eventTargetDate = "";
+
+            if (currentActivePhase === 'planner') {
+                inputPacket = {
+                    exam_date: document.getElementById('input-exam-date').value,
+                    subjects: document.getElementById('input-subjects').value
+                };
+                summaryTitle = "Exam Prep Study Plan";
+                eventTargetDate = inputPacket.exam_date || new Date().toISOString().split('T')[0];
+            } else if (currentActivePhase === 'milestone') {
+                inputPacket = {
+                    title: document.getElementById('input-project-title').value,
+                    requirements: document.getElementById('input-project-reqs').value,
+                    deadline: document.getElementById('input-project-deadline').value
+                };
+                summaryTitle = "Project Timeline: " + (inputPacket.title || "Assignment");
+                eventTargetDate = inputPacket.deadline || new Date().toISOString().split('T')[0];
+            } else if (currentActivePhase === 'booster') {
+                inputPacket = {
+                    tasks: document.getElementById('input-booster-tasks').value,
+                    hours: document.getElementById('input-booster-hours').value
+                };
+                summaryTitle = "Daily Study Booster Breakdown";
+                eventTargetDate = new Date().toISOString().split('T')[0];
+            }
+
+            const historyFeed = document.getElementById('chat-history-container');
+            const welcomeText = document.getElementById('initial-welcome-message');
+            if (welcomeText) welcomeText.remove();
+
+            const loadingRowId = 'loading-' + Date.now();
+            const loadingWrapper = document.createElement('div');
+            loadingWrapper.id = loadingRowId;
+            loadingWrapper.className = "p-4 rounded-2xl bg-purple-600/5 border border-purple-500/20 text-xs font-semibold text-purple-400 flex items-center space-x-2";
+            loadingWrapper.innerHTML = `<svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>ScholarSync Engine mapping strategic components...</span>`;
+            historyFeed.appendChild(loadingWrapper);
+            historyFeed.scrollTop = historyFeed.scrollHeight;
+
+            try {
+                const responseData = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: currentActivePhase, input_data: inputPacket, force: forceExecution })
+                });
+                
+                const finalResponse = await responseData.json();
+                document.getElementById(loadingRowId).remove();
+
+                if (finalResponse.error) {
+                    triggerAlertNotice("Sync Failed", finalResponse.error, "red");
+                    return;
+                }
+                if (finalResponse.result && finalResponse.result.startsWith("Validation Error:")) {
+                    triggerAlertNotice("Input Rejected", finalResponse.result, "red");
+                    return;
+                }
+
+                if (finalResponse.result && finalResponse.result.trim() === "GIBBERISH_DETECTED") {
+                    renderGibberishAlertBox((() => triggerSynchronizedPipeline(true)));
+                    return;
+                }
+
+                const roadmapCard = document.createElement('div');
+                roadmapCard.className = "p-5 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-partitions)] shadow-sm relative mb-2";
+                roadmapCard.innerHTML = `
+                    <div class="absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-md text-white font-bold text-[10px] uppercase tracking-wide" style="background-color: var(--accent-primary);">Optimized Roadmap (${currentActivePhase})</div>
+                    <div class="markdown-content text-sm leading-relaxed mt-1">${marked.parse(finalResponse.result)}</div>
+                `;
+                
+                const footerDiv = document.createElement('div');
+                footerDiv.className = "mt-4 pt-3 border-t border-[var(--border-color)] flex items-center justify-between";
+                footerDiv.innerHTML = `<span class="text-xs text-[var(--text-muted)] font-medium">Export scheduling data directly:</span>`;
+                
+                const syncBtn = document.createElement('button');
+                syncBtn.className = "px-3 py-1.5 rounded-xl text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 hover:opacity-90";
+                syncBtn.setAttribute('style', 'background-color: var(--accent-primary);');
+                syncBtn.innerHTML = `<span>📅 Sync to Google Calendar</span>`;
+                
+                const rawMarkdownText = finalResponse.result;
+                syncBtn.onclick = function() {
+                    const dateRegex = /\[DATE:\s*(\d{4}-\d{2}-\d{2})\]/g;
+                    const matches = [];
+                    let match;
+                    
+                    while ((match = dateRegex.exec(rawMarkdownText)) !== null) {
+                        matches.push({ date: match[1], index: match.index });
+                    }
+                    
+                    if (matches.length > 0) {
+                        triggerAlertNotice("Syncing Timeline", `Injecting ${matches.length} distributed milestones into Google Calendar accounts...`, "purple");
+                        for (let i = 0; i < matches.length; i++) {
+                            const eventDate = matches[i].date;
+                            const startPos = matches[i].index;
+                            const endPos = (i + 1 < matches.length) ? matches[i+1].index : rawMarkdownText.length;
+                            
+                            const chunk = rawMarkdownText.substring(startPos, endPos).trim();
+                            const lineEnd = chunk.indexOf('\n');
+                            const firstLine = lineEnd !== -1 ? chunk.substring(0, lineEnd) : chunk;
+                            
+                            let eventTitle = firstLine.replace(/#|\[DATE:\s*\d{4}-\d{2}-\d{2}\]/g, '').trim();
+                            if (!eventTitle) eventTitle = summaryTitle;
+                            
+                            dispatchToGoogleCalendarAPI(eventTitle, eventDate, chunk);
+                        }
+                    } else {
+                        dispatchToGoogleCalendarAPI(summaryTitle, eventTargetDate, rawMarkdownText);
+                    }
+                };
+                
+                footerDiv.appendChild(syncBtn);
+                roadmapCard.appendChild(footerDiv);
+                historyFeed.appendChild(roadmapCard);
+                triggerAlertNotice("Sync Complete", "Strategy updated and optimized!", "emerald");
+
+                if (Math.random() > 0.7) streak += 1;
+                localStorage.setItem('ss_streak', streak);
+                document.getElementById('stat-streak').innerText = `🔥 ${streak} Days`;
+                historyFeed.scrollTop = historyFeed.scrollHeight;
+
+            } catch (networkError) {
+                if(document.getElementById(loadingRowId)) document.getElementById(loadingRowId).remove();
+                triggerAlertNotice("Network Offline", "Could not establish server connection pipelines.", "red");
+            }
+        }
+
+        async function dispatchToGoogleCalendarAPI(title, date, description) {
+            if (!googleAccessToken) {
+                triggerAlertNotice("Action Locked", "Please connect your Google Account first via the landing panel.", "red");
+                return;
+            }
+            try {
+                const response = await fetch('/api/calendar/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: googleAccessToken, title: title, date: date, description: description })
+                });
+                const serverFeedback = await response.json();
+                if (serverFeedback.success) {
+                    triggerAlertNotice("Calendar Synced", `"${title}" successfully posted!`, "emerald");
+                } else {
+                    triggerAlertNotice("Sync Failed", serverFeedback.error || "Google APIs rejected data payload tokens.", "red");
+                }
+            } catch (err) {
+                triggerAlertNotice("Network Sync Fault", "Could not communicate parameters through data stream blocks.", "red");
+            }
+        }
+
+        function renderGibberishAlertBox(retryCallback) {
+            const historyFeed = document.getElementById('chat-history-container');
+            const alertContainer = document.createElement('div');
+            alertContainer.className = "p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-200 flex flex-col items-center justify-center space-y-3 max-w-md mx-auto my-2";
+            alertContainer.innerHTML = `
+                <div class="flex items-center space-x-2 text-xs font-bold tracking-wider uppercase">
+                    <span>⚠️ Gibberish / Spam Detected</span>
+                </div>
+                <p class="text-xs text-center opacity-90 font-medium">The workspace engine noticed your text entry pattern resembles spam or unreadable input parameters.</p>
+                <button class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl transition-all shadow-sm" id="bypass-gibberish-btn">
+                    Answer anyways?
+                </button>
+            `;
+            historyFeed.appendChild(alertContainer);
+            historyFeed.scrollTop = historyFeed.scrollHeight;
+
+            document.getElementById('bypass-gibberish-btn').onclick = function() {
+                alertContainer.remove();
+                retryCallback();
+            };
+        }
+
+        async function dispatchChatQueryMessage(forceExecution=false, historicalPrompt="") {
+            const inputField = document.getElementById('chat-text-input');
+            const userPromptText = forceExecution ? historicalPrompt : inputField.value.trim();
+            
+            if (!userPromptText && !attachedFileBase64) return;
+
+            const historyFeed = document.getElementById('chat-history-container');
+            const welcomeText = document.getElementById('initial-welcome-message');
+            if (welcomeText) welcomeText.remove();
+
+            if (!forceExecution) {
+                const userBubble = document.createElement('div');
+                userBubble.className = "flex flex-col items-end space-y-1 pl-12";
+                let imageEmbedTag = attachedFileBase64 ? `<div class="text-[10px] bg-purple-600/20 text-purple-400 px-2 py-1 rounded-md border border-purple-500/20 mb-1 font-semibold flex items-center gap-1">🖼️ Document Image Attached</div>` : '';
+                userBubble.innerHTML = `<div class="bg-purple-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-none shadow-sm font-medium select-text">${imageEmbedTag}${userPromptText || "Analyze the attached work file data."}</div><span class="text-[10px] text-[var(--text-muted)] font-semibold uppercase pr-1">You</span>`;
+                historyFeed.appendChild(userBubble);
+                inputField.value = '';
+            }
+            
+            const payloadPrompt = userPromptText || "Analyze the attached work file data.";
+            const targetBase64 = attachedFileBase64;
+            const targetMime = attachedFileMime;
+            const contextSnapshot = currentActivePhase;
+
+            clearChatFileAttachment();
+            historyFeed.scrollTop = historyFeed.scrollHeight;
+
+            const botLoadingRowId = 'bot-loading-' + Date.now();
+            const botLoadingWrapper = document.createElement('div');
+            botLoadingWrapper.id = botLoadingRowId;
+            botLoadingWrapper.className = "flex flex-col items-start space-y-1 pr-12 animate-pulse";
+            botLoadingWrapper.innerHTML = `<div class="bg-[var(--bg-input)] text-[var(--text-muted)] text-xs font-medium px-4 py-3 rounded-2xl rounded-tl-none border border-[var(--border-color)]">Analyzing material details...</div>`;
+            historyFeed.appendChild(botLoadingWrapper);
+            historyFeed.scrollTop = historyFeed.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: payloadPrompt,
+                        image: targetBase64,
+                        image_mime: targetMime,
+                        context: contextSnapshot,
+                        force: forceExecution
+                    })
+                });
+
+                const jsonResponse = await response.json();
+                document.getElementById(botLoadingRowId).remove();
+
+                if (jsonResponse.error) {
+                    triggerAlertNotice("Chat Processing Failed", jsonResponse.error, "red");
+                    return;
+                }
+
+                if (jsonResponse.result && jsonResponse.result.trim() === "GIBBERISH_DETECTED") {
+                    renderGibberishAlertBox((() => dispatchChatQueryMessage(true, payloadPrompt)));
+                    return;
+                }
+
+                const assistantBubble = document.createElement('div');
+                assistantBubble.className = "flex flex-col items-start space-y-1 pr-12";
+                assistantBubble.innerHTML = `<div class="bg-[var(--bg-input)] border border-[var(--border-color)] text-[var(--text-main)] text-sm px-4 py-3 rounded-2xl rounded-tl-none shadow-sm markdown-content leading-relaxed select-text">${marked.parse(jsonResponse.result)}</div><span class="text-[10px] text-[var(--text-muted)] font-semibold uppercase pl-1">ScholarSync Bot</span>`;
+                
+                historyFeed.appendChild(assistantBubble);
+                historyFeed.scrollTop = historyFeed.scrollHeight;
+
+            } catch (err) {
+                if (document.getElementById(botLoadingRowId)) document.getElementById(botLoadingRowId).remove();
+                triggerAlertNotice("Connection Error", "Failed to transfer chat parameters stream data.", "red");
+            }
+        }
+    </script>
+</body>
+</html>
