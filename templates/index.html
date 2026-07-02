@@ -124,7 +124,7 @@
             <button id="nav-signout-btn" onclick="signOutUser()" class="hidden text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] hover:text-rose-400 transition-colors mr-2">Sign Out</button>
             
             <div id="header-stats-display" class="hidden items-center space-x-4 text-sm font-semibold">
-                <div id="calendar-status-badge" class="hidden px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold">📅 Calendar Linked</div>
+                <div id="calendar-status-badge" class="hidden px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold">📅 Calendar Not Linked</div>
             </div>
 
             <div class="flex items-center space-x-2 bg-[var(--bg-input)] px-3 py-1.5 rounded-xl border border-[var(--border-color)]">
@@ -360,9 +360,15 @@
                     callback: (tokenResponse) => {
                         if (tokenResponse && tokenResponse.access_token) {
                             googleAccessToken = tokenResponse.access_token;
-                            triggerAlertNotice("Google Identity Synced", "Successfully linked Google Account and Calendar profiles!", "emerald");
+                            triggerAlertNotice("Google Identity Synced", "Successfully linked Google Account profile context!", "emerald");
+                            
                             const badge = document.getElementById('calendar-status-badge');
-                            if (badge) badge.classList.remove('hidden');
+                            if (badge) {
+                                badge.classList.remove('hidden');
+                                badge.innerText = "📅 Calendar Not Linked";
+                                badge.className = "px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold";
+                            }
+                            
                             const profileLabel = document.getElementById('account-profile-label');
                             if (profileLabel) profileLabel.innerText = "Student Profile";
                             navigateToView('app');
@@ -446,6 +452,14 @@
             googleAccessToken = "mock_developer_access_token";
             const profileLabel = document.getElementById('account-profile-label');
             if (profileLabel) profileLabel.innerText = "Developer Mode";
+            
+            const badge = document.getElementById('calendar-status-badge');
+            if (badge) {
+                badge.classList.remove('hidden');
+                badge.innerText = "📅 Calendar Not Linked";
+                badge.className = "px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold";
+            }
+
             triggerAlertNotice("Sandbox Activated", "Running client processes with simulated offline verification token.", "purple");
             navigateToView('app');
         }
@@ -454,8 +468,14 @@
             googleAccessToken = null;
             const profileLabel = document.getElementById('account-profile-label');
             if (profileLabel) profileLabel.innerText = "Log In";
+            
             const badge = document.getElementById('calendar-status-badge');
-            if (badge) badge.classList.add('hidden');
+            if (badge) {
+                badge.classList.add('hidden');
+                badge.innerText = "📅 Calendar Not Linked";
+                badge.className = "px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-semibold";
+            }
+
             triggerAlertNotice("Session Revoked", "Logged out from productivity context workspace loops.", "rose");
             navigateToView('auth');
         }
@@ -651,8 +671,15 @@
                     })
                 });
                 const out = await res.json();
-                if (out.success) {
+                if (out.success && out.calendar_status === "linked") {
                     triggerAlertNotice("Milestone Secured", `Successfully committed event target item dated ${dateStr}!`, "emerald");
+                    
+                    // Transition header layout state badge to reflect confirmation
+                    const badge = document.getElementById('calendar-status-badge');
+                    if (badge) {
+                        badge.innerText = "📅 Calendar Linked";
+                        badge.className = "px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold";
+                    }
                 } else {
                     triggerAlertNotice("Calendar Rejected", out.error || "Unknown calendar sync processing exception", "red");
                 }
