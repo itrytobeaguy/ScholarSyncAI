@@ -146,7 +146,6 @@
     </header>
 
     <div id="auth-view" class="flex-1 overflow-y-auto p-6 flex flex-col items-center justify-start space-y-8">
-        
         <div class="text-center max-w-2xl mt-8 space-y-4">
             <span class="px-4 py-1.5 rounded-full bg-purple-600/10 text-purple-400 text-xs font-bold tracking-wider uppercase border border-purple-500/20">
                 The Ultimate High School Productivity Stack
@@ -207,7 +206,6 @@
                     <span>Sign In with Google Account</span>
                 </button>
             </div>
-
         </div>
 
         <footer class="w-full text-center py-6 mt-12 border-t border-[var(--border-color)] text-[var(--text-muted)] text-xs flex items-center justify-center space-x-2">
@@ -222,15 +220,13 @@
     </div>
 
     <main id="app-view" class="flex-1 flex overflow-hidden p-4 gap-4 hidden">
-        
         <section class="w-5/12 flex flex-col gap-4 overflow-y-auto pr-1">
-            
             <div class="partition-card border rounded-2xl p-4 transition-colors duration-300">
                 <h2 class="text-xs font-bold uppercase tracking-wider mb-3 text-[var(--text-muted)]">Target Operational Focus</h2>
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="switchPhase('planner')" id="tab-planner" class="py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all bg-purple-600 border-purple-500 text-white shadow-sm flex items-center justify-center gap-1.5">
                         <svg id="calendar-icon" class="h-4 w-4 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" />
                         </svg>
                         <span>Planner</span>
                     </button>
@@ -252,7 +248,6 @@
 
             <div class="partition-card border rounded-2xl p-5 flex-1 flex flex-col justify-between transition-colors duration-300">
                 <div class="space-y-5">
-                    
                     <div id="form-phase-planner" class="space-y-4">
                         <div class="border-b border-[var(--border-color)] pb-2">
                             <h3 class="text-sm font-bold text-[var(--text-main)]">Intelligent Exam Planner Setup</h3>
@@ -301,7 +296,6 @@
                             <input type="number" id="input-booster-hours" placeholder="e.g., 3" min="1" max="12" class="w-full px-4 py-3 rounded-xl border bg-[var(--bg-input)] border-[var(--border-color)] text-[var(--text-main)] outline-none focus:border-purple-500 text-sm">
                         </div>
                     </div>
-
                 </div>
 
                 <button onclick="triggerSynchronizedPipeline()" class="w-full mt-6 text-white font-bold text-sm py-4 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 hover:opacity-95" style="background-color: var(--accent-primary);">
@@ -311,7 +305,6 @@
         </section>
 
         <section class="w-7/12 partition-card border rounded-2xl p-5 flex flex-col overflow-hidden transition-colors duration-300 relative">
-            
             <div id="chat-history-container" class="flex-1 overflow-y-auto space-y-4 pr-1 select-none">
                 <div id="initial-welcome-message" class="p-8 text-center max-w-md mx-auto my-auto space-y-3 flex flex-col items-center justify-center h-full">
                     <div class="h-12 w-12 rounded-2xl bg-purple-600/10 text-purple-400 border border-purple-500/20 flex items-center justify-center text-xl font-bold animate-bounce">✨</div>
@@ -348,9 +341,7 @@
                     </div>
                 </div>
             </div>
-
         </section>
-
     </main>
 
     <script>
@@ -416,8 +407,6 @@
                     statsDisplay.classList.add('flex');
                 }
                 if (signoutBtn) signoutBtn.classList.remove('hidden');
-                const streakEl = document.getElementById('stat-streak');
-                if (streakEl) streakEl.innerText = `🔥 ${activeUserStreak} Days`;
             }
         }
 
@@ -426,7 +415,6 @@
             localStorage.setItem('ss_theme', themeName);
         }
 
-        // Keep local profile cached beautifully
         const savedTheme = localStorage.getItem('ss_theme') || 'dark';
         document.body.setAttribute('data-theme', savedTheme);
         const themeSelect = document.getElementById('theme-select');
@@ -580,11 +568,8 @@
                     return;
                 }
 
-                // Increase local streak metric systematically on successful strategy deployments
                 activeUserStreak += 1;
                 localStorage.setItem('ss_streak', activeUserStreak);
-                const streakEl = document.getElementById('stat-streak');
-                if (streakEl) streakEl.innerText = `🔥 ${activeUserStreak} Days`;
 
                 const outputCard = document.createElement('div');
                 outputCard.className = "partition-card border rounded-2xl p-5 shadow-sm space-y-3 relative overflow-hidden flex flex-col";
@@ -707,7 +692,7 @@
                 const userBubble = document.createElement('div');
                 userBubble.className = "flex flex-col items-end space-y-1 pl-12";
                 userBubble.innerHTML = `<div class="bg-purple-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-none shadow-sm select-text">${payloadPrompt}</div><span class="text-[10px] text-[var(--text-muted)] font-semibold uppercase pr-1">You</span>`;
-                userBubble.appendChild(userBubble);
+                historyFeed.appendChild(userBubble);
             }
 
             const botLoadingRowId = "bot-load-" + Date.now();
