@@ -103,7 +103,7 @@ def generate_chat_response(message, base64_image=None, image_mime=None, current_
             })
 
         response = client.chat.completions.create(
-            model="qwen/qwen3.6-27b",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": content_payload}
