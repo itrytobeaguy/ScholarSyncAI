@@ -1,16 +1,21 @@
 import os
-from datetime import datetime
+#how to get to get to all files located in the main folder of the project
 from groq import Groq
+#Groq for the AI client
 from dotenv import load_dotenv
+#we have a .env file that contains the API key for the AI client, so we use dotenv to load it into the environment variables
+from datetime import datetime
 
 load_dotenv()
 
+#load the API key and check that the API key is loaded. If it isn't, give an error to the user
 def get_groq_client():
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key:
         raise ValueError("CRITICAL: GROQ_API_KEY is missing from your environment variables!")
     return Groq(api_key=api_key)
 
+#connect with the Groq client, generate an error if the user has not provided an error.
 def generate_productivity_data(mode, user_input, force=False):
     try:
         client = get_groq_client()
@@ -28,9 +33,11 @@ def generate_productivity_data(mode, user_input, force=False):
             if not user_input.get('tasks') or not user_input.get('hours'):
                 return "Validation Error: Please list your Tasks and available study Hours."
 
+        #date/time function that provides the current date on which the user is
         today = datetime.now()
         today_str = today.strftime("%Y-%m-%d")
 
+        #defines prompt structure for each mode 
         if mode == "planner":
             prompt = (
                 f"Today's Date: {today_str}. Create an optimized high school exam preparation study roadmap. "
@@ -50,7 +57,7 @@ def generate_productivity_data(mode, user_input, force=False):
                 f"Tasks to accomplish: {user_input.get('tasks')}. Total focus window time capacity: {user_input.get('hours')} hours. "
                 "Calibrate the time blocks to fit exactly within the requested hour limit."
             )
-
+        #response gives instructions to the AI model to provide a structured output in Markdown format, with specific tags for dates and milestones. The AI model is expected to return a clear, actionable plan based on the user's input.
         response = client.chat.completions.create(
             model="qwen/qwen3.6-27b",
             messages=[
@@ -64,6 +71,7 @@ def generate_productivity_data(mode, user_input, force=False):
     except Exception as e:
         return f"Optimization Pipeline Error: {str(e)}"
 
+#we ask a question, the AI chatbot gives us a response, the systen prompt is a set of instructions that tells the AI model how to behave and what kind of responses to generate. The system prompt is designed to make the AI model act as a helpful and knowledgeable assistant for high school students, providing guidance on homework, study tasks, and understanding complex concepts. The system prompt also instructs the AI model to output its internal thinking process in explicit <tool_call>...<tool_call> tags before providing the final answer, which helps students understand the reasoning behind the response.
 def generate_chat_response(message, base64_image=None, image_mime=None, current_context=None, force=False):
     try:
         client = get_groq_client()
@@ -80,6 +88,7 @@ def generate_chat_response(message, base64_image=None, image_mime=None, current_
         if current_context:
             system_prompt += f" Keep in mind that the student is currently focusing on this specific phase objective: {current_context}"
 
+        #the question the user will ask is the content_payload
         content_payload = []
         content_payload.append({"type": "text", "text": message})
         
