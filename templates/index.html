@@ -95,13 +95,15 @@
             color: var(--text-main);
         }
 
-        body[data-theme="dark"] #calendar-icon,
+        body[data-theme="dark"] #calendar-icon {
+            stroke: white;    
+        }
         body[data-theme="cosmic"] #calendar-icon {
-            color: #ffffff !important;
+            stroke: white;    
         }
 
         body[data-theme="light"] #calendar-icon {
-            color: #000000 !important;
+            stroke: black;
         }
 
         .google-btn-container iframe {
@@ -116,6 +118,30 @@
         <div class="flex items-center space-x-3 cursor-pointer" onclick="navigateToView('auth')" title="Return to Landing Page">
             <div class="h-9 w-9 bg-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-purple-500/20">S</div>
             <span class="font-bold text-xl tracking-tight">ScholarSync <span class="text-purple-400 font-medium text-sm">AI</span></span>
+        </div>
+        
+        <div class="flex items-center space-x-4">
+            <button id="nav-signout-btn" onclick="signOutUser()" class="hidden text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] hover:text-rose-400 transition-colors mr-2">Sign Out</button>
+            
+            <div id="header-stats-display" class="hidden items-center space-x-4 text-sm font-semibold">
+                <div id="calendar-status-badge" class="hidden px-3 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold">📅 Calendar Linked</div>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-[var(--bg-input)] px-3 py-1.5 rounded-xl border border-[var(--border-color)]">
+                <svg class="h-4 w-4 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span id="account-profile-label" class="text-xs font-semibold text-[var(--text-main)]">Student Profile</span>
+            </div>
+
+            <div class="flex items-center space-x-2 bg-[var(--bg-input)] px-3 py-1.5 rounded-xl border border-[var(--border-color)]">
+                <label for="theme-select" class="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Theme:</label>
+                <select id="theme-select" onchange="toggleTheme(this.value)" class="bg-transparent text-xs font-semibold text-[var(--text-main)] outline-none cursor-pointer pr-1">
+                    <option value="light" class="text-slate-900 bg-white">Light Mode</option>
+                    <option value="dark" class="text-white bg-slate-900">Dark Mode</option>
+                    <option value="cosmic" class="text-purple-300 bg-slate-950">Cosmic Mode</option>
+                </select>
+            </div>
         </div>
     </header>
 
@@ -204,7 +230,7 @@
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="switchPhase('planner')" id="tab-planner" class="py-2.5 px-3 rounded-xl border text-xs font-semibold text-center transition-all bg-purple-600 border-purple-500 text-white shadow-sm flex items-center justify-center gap-1.5">
                         <svg id="calendar-icon" class="h-4 w-4 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2V7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span>Planner</span>
                     </button>
@@ -681,7 +707,7 @@
                 const userBubble = document.createElement('div');
                 userBubble.className = "flex flex-col items-end space-y-1 pl-12";
                 userBubble.innerHTML = `<div class="bg-purple-600 text-white text-sm px-4 py-2.5 rounded-2xl rounded-tr-none shadow-sm select-text">${payloadPrompt}</div><span class="text-[10px] text-[var(--text-muted)] font-semibold uppercase pr-1">You</span>`;
-                historyFeed.appendChild(userBubble);
+                userBubble.appendChild(userBubble);
             }
 
             const botLoadingRowId = "bot-load-" + Date.now();
