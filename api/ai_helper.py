@@ -55,7 +55,7 @@ def generate_productivity_data(mode, user_input, force=False):
             prompt = (
                 f"Today's Date: {today_str}. Build an accelerated step-by-step study session plan for today. "
                 f"Tasks to accomplish: {user_input.get('tasks')}. Total focus window time capacity: {user_input.get('hours')} hours. "
-                "Calibrate the time blocks to fit exactly within the requested hour limit."
+                "Calibrate the time blocks to fit exactly within the requested hour limit. The most important part is to answer directly with the final response only. Do not include any internal reasoning, analysis, hidden chain-of-thought, or <think> / <tool_call> tags."
             )
         #response gives instructions to the AI model to provide a structured output in Markdown format, with specific tags for dates and milestones. The AI model is expected to return a clear, actionable plan based on the user's input.
         response = client.chat.completions.create(
