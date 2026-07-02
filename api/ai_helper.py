@@ -80,7 +80,7 @@ def generate_chat_response(message, base64_image=None, image_mime=None, current_
             "You are ScholarSync AI's Homework & Study Companion chatbot. Your objective is to help high school students "
             "comprehend assignments, analyze provided homework images/files, break down complex concepts, and support study tasks. "
             "Keep your explanations educational, concise, highly supportive, and formatted cleanly using simple Markdown tags. "
-            "Answer directly with the final response only. Do not include any internal reasoning, analysis, hidden chain-of-thought, or <think> / <tool_call> tags."
+            "The most important part is to answer directly with the final response only. Do not include any internal reasoning, analysis, hidden chain-of-thought, or <think> / <tool_call> tags."
         )
         if not force:
             system_prompt += " If the user query or text is absolute gibberish, random keystrokes, or spam, you must output ONLY the exact text string: GIBBERISH_DETECTED"
