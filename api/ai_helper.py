@@ -71,7 +71,7 @@ def generate_productivity_data(mode, user_input, force=False):
     except Exception as e:
         return f"Optimization Pipeline Error: {str(e)}"
 
-#we ask a question, the AI chatbot gives us a response, the systen prompt is a set of instructions that tells the AI model how to behave and what kind of responses to generate. The system prompt is designed to make the AI model act as a helpful and knowledgeable assistant for high school students, providing guidance on homework, study tasks, and understanding complex concepts. The system prompt also instructs the AI model to output its internal thinking process in explicit <tool_call>...<tool_call> tags before providing the final answer, which helps students understand the reasoning behind the response.
+#we ask a question, the AI chatbot gives us a response. The system prompt is a set of instructions that tells the AI model how to behave and what kind of responses to generate. The system prompt is designed to make the AI model act as a helpful and knowledgeable assistant for high school students, providing guidance on homework, study tasks, and understanding complex concepts. The system prompt also tells the model to provide only the final answer and to avoid any internal reasoning or <tool_call>/<think> tags.
 def generate_chat_response(message, base64_image=None, image_mime=None, current_context=None, force=False):
     try:
         client = get_groq_client()
@@ -80,7 +80,7 @@ def generate_chat_response(message, base64_image=None, image_mime=None, current_
             "You are ScholarSync AI's Homework & Study Companion chatbot. Your objective is to help high school students "
             "comprehend assignments, analyze provided homework images/files, break down complex concepts, and support study tasks. "
             "Keep your explanations educational, concise, highly supportive, and formatted cleanly using simple Markdown tags. "
-            "Do not output your internal thinking process or step-by-step analytical chain-of-thought inside explicit <think>...</think> tags at the very beginning of your response before providing your final markdown answer to help the student understand complex logic."
+            "Answer directly with the final response only. Do not include any internal reasoning, analysis, hidden chain-of-thought, or <think> / <tool_call> tags."
         )
         if not force:
             system_prompt += " If the user query or text is absolute gibberish, random keystrokes, or spam, you must output ONLY the exact text string: GIBBERISH_DETECTED"
