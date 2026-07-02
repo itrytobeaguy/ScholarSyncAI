@@ -61,7 +61,7 @@ def generate_productivity_data(mode, user_input, force=False):
         response = client.chat.completions.create(
             model="qwen/qwen3.6-27b",
             messages=[
-                {"role": "system", "content": "You are ScholarSync AI's expert academic productivity coordinator. Provide strategic, actionable high school study guidance and roadmaps using clear, clean Markdown formatting."},
+                {"role": "system", "content": "You are ScholarSync AI's expert academic productivity coordinator. Provide strategic, actionable high school study guidance and roadmaps using clear, clean Markdown formatting. Do not include any internal reasoning, analysis, hidden chain-of-thought, or <think> / <tool_call> tags."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
