@@ -49,7 +49,7 @@ def generate_productivity_data(mode, user_input, force=False):
                 f"Today's Date: {today_str}. Break down the following high school project into structured milestone checkpoints. "
                 f"Project Title: {user_input.get('title')}. Assignment Requirements: {user_input.get('requirements')}. "
                 f"Final Submission Deadline: {user_input.get('deadline')}. "
-                "Structure into clear chronological sequence checkpoints. For each checkpoint block, prefix it with an explicit single-line tag in the exact format [DATE: YYYY-MM-DD] indicating when the checkpoint should be completed."
+                "Structure into clear chronological sequence checkpoints. For each checkpoint block, prefix it with an explicit single-line tag in the exact format [DATE: YYYY-MM-DD] indicating when the checkpoint should be completed. The most important part is to answer directly with the final response only. Do not include any internal reasoning, analysis, hidden chain-of-thought, or <think> / <tool_call> tags."
             )
         elif mode == "booster":
             prompt = (
