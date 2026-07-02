@@ -42,7 +42,7 @@ def generate_productivity_data(mode, user_input, force=False):
             prompt = (
                 f"Today's Date: {today_str}. Create an optimized high school exam preparation study roadmap. "
                 f"Exam Date: {user_input.get('exam_date')}. Subjects and current student confidence parameters: {user_input.get('subjects')}. "
-                "Break this down systematically into chronological milestones. For each milestone block, prefix it with an explicit single-line tag in the exact format [DATE: YYYY-MM-DD] indicating when the user should finish that milestone."
+                "Break this down systematically into chronological milestones. For each milestone block, prefix it with an explicit single-line tag in the exact format [DATE: YYYY-MM-DD] indicating when the user should finish that milestone. The most important part is to answer directly with the final response only. Do not include any internal reasoning, analysis, hidden chain-of-thought, or <think> / <tool_call> tags."
             )
         elif mode == "milestone":
             prompt = (
